@@ -46,6 +46,33 @@ async function orderScooter(scooterId) {
   return 'fail';
 }
 
+async function refreshToken(){
+  const formData = {
+    grant_type: 'refresh_token',
+    refresh_token: process.env.Authorization,
+    uuid: process.env.RefreshTokenUUID,
+  }
+
+  const resp = await postRequest({
+    url: 'https://auth.ridegoshareapi.com/oauth/token',
+    'auth': {
+      'user': process.env.UserId,
+      'pass': process.env.Password,
+    },
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'authority': 'auth.ridegoshareapi.com',
+    },
+    form: formData,
+    json: true,
+  });
+
+  console.log(resp.body);
+  console.log(resp.statusCode);
+  process.env.Authorization = resp.body.accessToken
+
+}
+
 async function run() {
   if (runFlag) {
     console.log('I am ordering');
@@ -58,12 +85,13 @@ async function run() {
       console.log('Wait complete, canceling order');
       await cancelScooter(orderId);
       console.log('Cancel complete.');
+    }else{
+      await refreshToken()
     }
   }
   console.log(`runFlag: ${runFlag}`);
 }
-
-run();
-setInterval(async () => {
-  run();
-}, 581000);
+updateenv();
+// setInterval(async () => {
+//   run();
+// }, 581000);
