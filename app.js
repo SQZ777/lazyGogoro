@@ -1,6 +1,21 @@
 const { patchRequest, postRequest } = require('./lib/request');
 require('dotenv').config();
 
+const { MongoClient } = require('mongodb');
+const { MongoDbBase } = require('./lib/mongodbBase');
+
+async function connectToMongodb() {
+  const client = await MongoClient.connect(process.env.mongoHost, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  }).catch((err) => {
+    console.log(`something went wrong: ${err}`);
+    throw err;
+  });
+  console.log('connect success.');
+  return client;
+}
+
 let runFlag = true;
 
 async function cancelScooter(orderId) {
@@ -91,7 +106,8 @@ async function run() {
   }
   console.log(`runFlag: ${runFlag}`);
 }
-updateenv();
-// setInterval(async () => {
-//   run();
-// }, 581000);
+
+run();
+setInterval(async () => {
+  run();
+}, 581000);
