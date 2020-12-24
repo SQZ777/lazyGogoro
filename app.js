@@ -74,12 +74,10 @@ async function refreshToken() {
 
   if (resp.statusCode === 200) {
     console.log(resp.body);
-    currentAuthorization = resp.body.accessToken;
-    current
-    const updateAuthResult = await lazyGogoroService.updateAuthorization(currentAuthorization);
-    console.log(updateAuthResult);
-    const updateRefTokenResult = await lazyGogoroService.updateRefreshToken(currentRefreshToken);
-    console.log(updateRefTokenResult);
+    currentAuthorization = resp.body.access_token;
+    currentRefreshToken = resp.body.refresh_token;
+    await lazyGogoroService.updateAuthorization(currentAuthorization);
+    await lazyGogoroService.updateRefreshToken(currentRefreshToken);
   } else {
     console.log(`status code: ${resp.statusCode}`);
     console.log(resp.body);
