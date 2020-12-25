@@ -1,7 +1,9 @@
 const { patchRequest, postRequest } = require('./lib/request');
 const { LazyGogoroService } = require('./lib/lazyGogoroService');
+const { RefreshTokenService } = require('./lib/refreshTokenService');
+
 require('dotenv').config();
-global.atob = require("atob");
+global.atob = require('atob');
 
 const { MongoClient } = require('mongodb');
 const { MongoDbBase } = require('./lib/mongodbBase');
@@ -52,51 +54,31 @@ function checkTokenExpireNearly(token) {
 }
 
 async function refreshToken() {
-  const formData = {
-    grant_type: 'refresh_token',
-    refresh_token: currentRefreshToken,
-    uuid: process.env.RefreshTokenUUID,
-  };
-
-  const resp = await postRequest({
-    url: 'https://auth.ridegoshareapi.com/oauth/token',
-    auth: {
-      user: process.env.UserId,
-      pass: process.env.Password,
-    },
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      authority: 'auth.ridegoshareapi.com',
-    },
-    form: formData,
-    json: true,
-  });
-
-  if (resp.statusCode === 200) {
-    console.log(resp.body);
-    currentAuthorization = resp.body.access_token;
-    currentRefreshToken = resp.body.refresh_token;
-    await lazyGogoroService.updateAuthorization(currentAuthorization);
-    await lazyGogoroService.updateRefreshToken(currentRefreshToken);
-  } else {
-    console.log(`status code: ${resp.statusCode}`);
-    console.log(resp.body);
-    console.log('refresh token fail.');
-  }
+  const refreshTokenService = new RefreshTokenService(lazyGogoroService);
+    const refreshTokenResult = await refreshTokenService.refreshToken(
+      currentRefreshToken,
+    );
+    if (refreshTokenResult !== null) {
+      currentAuthorization = refreshTokenResult.Authorization;
+      currentRefreshToken = refreshTokenResult.RefreshToken;
+    }
 }
 
 async function init() {
   client = await connectToMongodb();
   lazyGogoroCollection = new MongoDbBase(client, 'lazyGogoro');
   lazyGogoroService = new LazyGogoroService(lazyGogoroCollection);
+
   currentRefreshToken = await lazyGogoroService.getRefreshToken();
   currentAuthorization = await lazyGogoroService.getAuthorization();
-  if(checkTokenExpireNearly(currentAuthorization) === true){
+  console.log(currentRefreshToken);
+  console.log(currentAuthorization);
+  if (checkTokenExpireNearly(currentAuthorization) === true) {
     console.log('need to refresh');
-    await refreshToken();
-  }else{
+    // await refreshToken();
+  } else {
     console.log('no need to refresh');
-  }
+  } 
   await run();
 }
 
@@ -164,7 +146,6 @@ async function run() {
 }
 
 init();
-
 setInterval(async () => {
   run();
 }, 581000);
