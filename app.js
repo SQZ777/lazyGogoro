@@ -55,13 +55,18 @@ function checkTokenExpireNearly(token) {
 
 async function refreshToken() {
   const refreshTokenService = new RefreshTokenService(lazyGogoroService);
-    const refreshTokenResult = await refreshTokenService.refreshToken(
-      currentRefreshToken,
-    );
-    if (refreshTokenResult !== null) {
-      currentAuthorization = refreshTokenResult.Authorization;
-      currentRefreshToken = refreshTokenResult.RefreshToken;
-    }
+  const refreshTokenResult = await refreshTokenService.refreshToken(
+    currentRefreshToken,
+  );
+  if (refreshTokenResult !== null) {
+    currentAuthorization = refreshTokenResult.Authorization;
+    currentRefreshToken = refreshTokenResult.RefreshToken;
+    runFlag = true;
+    return true;
+  } else {
+    runFlag = false;
+    return false;
+  }
 }
 
 async function init() {
@@ -75,10 +80,10 @@ async function init() {
   console.log(currentAuthorization);
   if (checkTokenExpireNearly(currentAuthorization) === true) {
     console.log('need to refresh');
-    // await refreshToken();
+    await refreshToken();
   } else {
     console.log('no need to refresh');
-  } 
+  }
   await run();
 }
 
@@ -126,26 +131,26 @@ async function orderScooter(scooterId) {
 }
 
 async function run() {
-  if (runFlag) {
-    console.log('I am ordering');
-    const orderId = await orderScooter(process.env.ScooterId);
-    console.log(`orderId: ${orderId}`);
-    if (orderId !== 'no run') {
-      console.log('Order complete');
-      console.log('I am waiting...');
-      await new Promise((resolve) => setTimeout(resolve, 578000));
-      console.log('Wait complete, canceling order');
-      await cancelScooter(orderId);
-      console.log('Cancel complete.');
-    } else {
-      console.log('need to refresh token');
-      await refreshToken();
-    }
+  console.log('I am ordering');
+  const orderId = await orderScooter(process.env.ScooterId);
+  console.log(`orderId: ${orderId}`);
+  if (orderId !== 'no run') {
+    console.log('Order complete');
+    console.log('I am waiting...');
+    await new Promise((resolve) => setTimeout(resolve, 475000));
+    console.log('Wait complete, canceling order');
+    await cancelScooter(orderId);
+    console.log('Cancel complete.');
+  } else {
+    console.log('need to refresh token');
+    await refreshToken();
   }
-  console.log(`runFlag: ${runFlag}`);
 }
 
 init();
 setInterval(async () => {
-  run();
-}, 581000);
+  if (runFlag === true) {
+    run();
+  }
+  console.log(`runFlag: ${runFlag}`);
+}, 481000);
