@@ -19,17 +19,26 @@ async function connectToMongodb() {
   return client;
 }
 
-const client = await connectToMongodb();
-const lazyGogoroCollection = new MongoDbBase(client, 'lazyGogoro');
-const orderScooterService = new OrderScooterService();
-const refreshTokenService = new RefreshTokenService(lazyGogoroRepository);
-const lazyGogoroRepository = new LazyGogoroRepository(lazyGogoroCollection);
-const lazyGogoroService = new LazyGogoroService(
-  orderScooterService,
-  refreshTokenService,
-  lazyGogoroRepository,
-);
+async function run() {
+  const client = await connectToMongodb();
+  const lazyGogoroCollection = new MongoDbBase(client, 'lazyGogoro');
+  const orderScooterService = new OrderScooterService();
+  const lazyGogoroRepository = new LazyGogoroRepository(lazyGogoroCollection);
+  const refreshTokenService = new RefreshTokenService(lazyGogoroRepository);
+  const lazyGogoroService = new LazyGogoroService(
+    orderScooterService,
+    refreshTokenService,
+    lazyGogoroRepository,
+  );
 
-const orderScooterId = proccess.env.ScooterId
+  const orderScooterId = process.env.ScooterId;
 
-await lazyGogoroService.run(orderScooterId)
+  await lazyGogoroService.run(orderScooterId);
+}
+
+run();
+// TODO: let interval become timeout, then it can be control by "times".
+// TODO2: timeout complete, then make a terminate machanism.
+setInterval(async () => { 
+  run();
+}, 480000);
