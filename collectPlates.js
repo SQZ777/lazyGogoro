@@ -52,13 +52,20 @@ async function run() {
   let cursor = await lazyGogoroAuthRepository.getCursor();
   const result = await plateService.collectPlates(auth, cursor);
   await lazyGogoroAuthRepository.updateCursor(result.cursor);
-  result.scooters.map(async (scooter)=>{
-    const info = {
-      ScooterId: scooter.id,
-      Plate: scooter.plate,
-    };
-    await createPlate(info, plateRepository);
-  });
+  if (result.scooters) {
+    console.log(`${new Date()} - Creating ScooterIds...`)
+    result.scooters.map(async (scooter)=>{
+      const info = {
+        ScooterId: scooter.id,
+        Plate: scooter.plate,
+      };
+      await createPlate(info, plateRepository);
+    });
+    console.log(`${new Date()} - Create Complete!`)
+  }else{
+    console.log(result.scooters);
+    console.log(`${new Date()} - Scooters is null or undefined.`);
+  }
 }
 
 init();
