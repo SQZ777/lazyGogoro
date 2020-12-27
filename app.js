@@ -1,5 +1,5 @@
 const { patchRequest, postRequest } = require('./lib/request');
-const { LazyGogoroRepository } = require('./lib/lazyGogoroRepository');
+const { LazyGogoroAuthRepository } = require('./lib/lazyGogoroAuthRepository');
 const { RefreshTokenService } = require('./lib/refreshTokenService');
 
 require('dotenv').config();
@@ -23,7 +23,7 @@ async function connectToMongodb() {
 let runFlag = true;
 let client;
 let lazyGogoroCollection;
-let lazyGogoroRepository;
+let lazyGogoroAuthRepository;
 let currentAuthorization;
 let currentRefreshToken;
 
@@ -54,7 +54,7 @@ function checkTokenExpireNearly(token) {
 }
 
 async function refreshToken() {
-  const refreshTokenService = new RefreshTokenService(lazyGogoroRepository);
+  const refreshTokenService = new RefreshTokenService(lazyGogoroAuthRepository);
   const refreshTokenResult = await refreshTokenService.refreshToken(
     currentRefreshToken,
   );
@@ -72,10 +72,10 @@ async function refreshToken() {
 async function init() {
   client = await connectToMongodb();
   lazyGogoroCollection = new MongoDbBase(client, 'lazyGogoro');
-  lazyGogoroRepository = new LazyGogoroRepository(lazyGogoroCollection);
+  lazyGogoroAuthRepository = new LazyGogoroAuthRepository(lazyGogoroCollection);
 
-  currentRefreshToken = await LazyGogoroRepository.getRefreshToken();
-  currentAuthorization = await LazyGogoroRepository.getAuthorization();
+  currentRefreshToken = await LazyGogoroAuthRepository.getRefreshToken();
+  currentAuthorization = await LazyGogoroAuthRepository.getAuthorization();
   console.log(currentRefreshToken);
   console.log(currentAuthorization);
   if (checkTokenExpireNearly(currentAuthorization) === true) {
