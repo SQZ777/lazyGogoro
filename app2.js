@@ -19,8 +19,15 @@ async function connectToMongodb() {
   return client;
 }
 
+let client;
+
+
+async function init() {
+  client = await connectToMongodb();
+  await run();
+}
+
 async function run() {
-  const client = await connectToMongodb();
   const lazyGogoroCollection = new MongoDbBase(client, 'lazyGogoro');
   const orderScooterService = new OrderScooterService();
   const lazyGogoroAuthRepository = new LazyGogoroAuthRepository(lazyGogoroCollection);
@@ -36,7 +43,7 @@ async function run() {
   await lazyGogoroService.run(orderScooterId);
 }
 
-run();
+init();
 // TODO: let interval become timeout, then it can be control by "times".
 // TODO2: timeout complete, then make a terminate machanism.
 setInterval(async () => { 
