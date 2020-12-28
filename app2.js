@@ -4,8 +4,9 @@ const { MongoClient } = require('mongodb');
 const { MongoDbBase } = require('./lib/mongodbBase');
 const { OrderScooterService } = require('./lib/orderScooterService');
 const { LazyGogoroAuthRepository } = require('./lib/lazyGogoroAuthRepository');
-const { RefreshTokenService } = require('./lib/refreshTokenService');
+const { RefreshTokenServiceV2 } = require('./lib/refreshTokenServiceV2');
 const { LazyGogoroService } = require('./lib/lazyGogoroService');
+const { PlateRepository } = require('./lib/plateRepository');
 
 async function connectToMongodb() {
   const client = await MongoClient.connect(process.env.mongoHost, {
@@ -29,18 +30,21 @@ async function init() {
 
 async function run() {
   const lazyGogoroCollection = new MongoDbBase(client, 'lazyGogoro');
+  const gogoroScooterInfoCollection = new MongoDbBase(client, 'gogoroScooterInfo');
   const orderScooterService = new OrderScooterService();
   const lazyGogoroAuthRepository = new LazyGogoroAuthRepository(lazyGogoroCollection);
-  const refreshTokenService = new RefreshTokenService(lazyGogoroAuthRepository);
+  const refreshTokenService = new RefreshTokenServiceV2(lazyGogoroAuthRepository);
+  const plateRepository = new PlateRepository(gogoroScooterInfoCollection);
   const lazyGogoroService = new LazyGogoroService(
     orderScooterService,
     refreshTokenService,
     lazyGogoroAuthRepository,
+    plateRepository,
   );
+    
+  const orderScooterPlate = process.env.ScooterPlate;
 
-  const orderScooterId = process.env.ScooterId;
-
-  await lazyGogoroService.run(orderScooterId);
+  await lazyGogoroService.run(orderScooterPlate);
 }
 
 init();

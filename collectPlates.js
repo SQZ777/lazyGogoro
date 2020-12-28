@@ -63,7 +63,6 @@ async function run() {
     });
     console.log(`${new Date()} - Create Complete!`)
   }else{
-    console.log(result.scooters);
     console.log(`${new Date()} - Scooters is null or undefined.`);
   }
 }
