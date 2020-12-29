@@ -22,12 +22,6 @@ async function connectToMongodb() {
 
 let client;
 const orderScooterPlate = process.env.ScooterPlate;
-const lazyGogoroCollection = new MongoDbBase(client, 'lazyGogoro');
-const gogoroScooterInfoCollection = new MongoDbBase(client, 'gogoroScooterInfo');
-const orderScooterService = new OrderScooterService();
-const lazyGogoroRepository = new LazyGogoroRepository(lazyGogoroCollection);
-const refreshTokenService = new RefreshTokenServiceV2(lazyGogoroRepository);
-const plateRepository = new PlateRepository(gogoroScooterInfoCollection);
 
 
 async function init() {
@@ -36,6 +30,13 @@ async function init() {
 }
 
 async function run(orderScooterPlate) {
+  const lazyGogoroCollection = new MongoDbBase(client, 'lazyGogoro');
+  const gogoroScooterInfoCollection = new MongoDbBase(client, 'gogoroScooterInfo');
+  const orderScooterService = new OrderScooterService();
+  const lazyGogoroRepository = new LazyGogoroRepository(lazyGogoroCollection);
+  const refreshTokenService = new RefreshTokenServiceV2(lazyGogoroRepository);
+  const plateRepository = new PlateRepository(gogoroScooterInfoCollection);
+
   const lazyGogoroService = new LazyGogoroService(
     orderScooterService,
     refreshTokenService,
@@ -48,12 +49,7 @@ async function run(orderScooterPlate) {
 init();
 // TODO: let interval become timeout, then it can be control by "times".
 // TODO2: timeout complete, then make a terminate machanism.
+// Make lazyGogoroOrders
 const lazyGogoroInterval = setInterval(async () => { 
   run(orderScooterPlate);
 }, 480000);
-
-setInterval(() => {
-  if (terminateOrder === true) {
-    clearInterval(lazyGogoroInterval);
-  }
-}, 2000);
