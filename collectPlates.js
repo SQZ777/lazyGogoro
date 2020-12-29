@@ -3,7 +3,6 @@ const { MongoClient } = require('mongodb');
 
 const { MongoDbBase } = require('./lib/mongodbBase');
 const { LazyGogoroRepository } = require('./lib/lazyGogoroRepository');
-const { RefreshTokenService } = require('./lib/refreshTokenService');
 const { RefreshTokenServiceV2 } = require('./lib/refreshTokenServiceV2');
 const { PlateRepository } = require('./lib/plateRepository');
 const { PlateService } = require('./lib/plateService');
