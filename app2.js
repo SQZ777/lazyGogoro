@@ -3,7 +3,7 @@ const { MongoClient } = require('mongodb');
 
 const { MongoDbBase } = require('./lib/mongodbBase');
 const { OrderScooterService } = require('./lib/orderScooterService');
-const { LazyGogoroAuthRepository } = require('./lib/lazyGogoroAuthRepository');
+const { LazyGogoroRepository } = require('./lib/lazyGogoroRepository');
 const { RefreshTokenServiceV2 } = require('./lib/refreshTokenServiceV2');
 const { LazyGogoroService } = require('./lib/lazyGogoroService');
 const { PlateRepository } = require('./lib/plateRepository');
@@ -21,28 +21,27 @@ async function connectToMongodb() {
 }
 
 let client;
+const orderScooterPlate = process.env.ScooterPlate;
+const lazyGogoroCollection = new MongoDbBase(client, 'lazyGogoro');
+const gogoroScooterInfoCollection = new MongoDbBase(client, 'gogoroScooterInfo');
+const orderScooterService = new OrderScooterService();
+const lazyGogoroRepository = new LazyGogoroRepository(lazyGogoroCollection);
+const refreshTokenService = new RefreshTokenServiceV2(lazyGogoroRepository);
+const plateRepository = new PlateRepository(gogoroScooterInfoCollection);
 
 
 async function init() {
   client = await connectToMongodb();
-  await run();
+  await run(orderScooterPlate);
 }
 
-async function run() {
-  const lazyGogoroCollection = new MongoDbBase(client, 'lazyGogoro');
-  const gogoroScooterInfoCollection = new MongoDbBase(client, 'gogoroScooterInfo');
-  const orderScooterService = new OrderScooterService();
-  const lazyGogoroAuthRepository = new LazyGogoroAuthRepository(lazyGogoroCollection);
-  const refreshTokenService = new RefreshTokenServiceV2(lazyGogoroAuthRepository);
-  const plateRepository = new PlateRepository(gogoroScooterInfoCollection);
+async function run(orderScooterPlate) {
   const lazyGogoroService = new LazyGogoroService(
     orderScooterService,
     refreshTokenService,
-    lazyGogoroAuthRepository,
+    lazyGogoroRepository,
     plateRepository,
   );
-    
-  const orderScooterPlate = process.env.ScooterPlate;
 
   await lazyGogoroService.run(orderScooterPlate);
 }
@@ -50,6 +49,12 @@ async function run() {
 init();
 // TODO: let interval become timeout, then it can be control by "times".
 // TODO2: timeout complete, then make a terminate machanism.
-setInterval(async () => { 
-  run();
+const lazyGogoroInterval = setInterval(async () => { 
+  run(orderScooterPlate);
 }, 480000);
+
+setInterval(() => {
+  if (terminateOrder === true) {
+    clearInterval(lazyGogoroInterval);
+  }
+}, 2000);
