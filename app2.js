@@ -39,7 +39,6 @@ async function run(orderScooterPlate) {
   const lazyGogoroService = new LazyGogoroService(
     orderScooterService,
     refreshTokenService,
-    lazyGogoroRepository,
     plateRepository,
   );
 
