@@ -51,6 +51,9 @@ async function run() {
 
   let cursor = await lazyGogoroAuthRepository.getCursor();
   const result = await plateService.collectPlates(auth, cursor);
+  if (result.cursor === null) {
+    throw `${new Date} - Response Cursor is null.`
+  }
   await lazyGogoroAuthRepository.updateCursor(result.cursor);
   if (result.scooters) {
     console.log(`${new Date()} - Creating ScooterIds...`)
