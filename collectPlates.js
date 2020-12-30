@@ -2,8 +2,7 @@ require('dotenv').config();
 const { MongoClient } = require('mongodb');
 
 const { MongoDbBase } = require('./lib/mongodbBase');
-const { LazyGogoroAuthRepository } = require('./lib/lazyGogoroAuthRepository');
-const { RefreshTokenService } = require('./lib/refreshTokenService');
+const { LazyGogoroRepository } = require('./lib/lazyGogoroRepository');
 const { RefreshTokenServiceV2 } = require('./lib/refreshTokenServiceV2');
 const { PlateRepository } = require('./lib/plateRepository');
 const { PlateService } = require('./lib/plateService');
@@ -39,17 +38,17 @@ async function init(){
 
 async function run() {
   const lazyGogoroCollection = new MongoDbBase(client, 'lazyGogoro');
-  const lazyGogoroAuthRepository = new LazyGogoroAuthRepository(
+  const lazyGogoroRepository = new LazyGogoroRepository(
     lazyGogoroCollection,
   );
-  const refreshTokenService = new RefreshTokenServiceV2(lazyGogoroAuthRepository);
+  const refreshTokenService = new RefreshTokenServiceV2(lazyGogoroRepository);
   const gogoroPlatesCollection = new MongoDbBase(client, 'gogoroScooterInfo');
   const plateRepository = new PlateRepository(gogoroPlatesCollection);
   const plateService = new PlateService();
 
   const auth = await refreshTokenService.refreshToken();
 
-  let cursor = await lazyGogoroAuthRepository.getCursor();
+  let cursor = await lazyGogoroRepository.getCursor();
   const result = await plateService.collectPlates(auth, cursor);
   if (result.cursor === null) {
     throw `${new Date} - Response Cursor is null.`
