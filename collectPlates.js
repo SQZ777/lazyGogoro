@@ -50,7 +50,10 @@ async function run() {
 
   let cursor = await lazyGogoroRepository.getCursor();
   const result = await plateService.collectPlates(auth, cursor);
-  await lazyGogoroRepository.updateCursor(result.cursor);
+  if (result.cursor === null) {
+    throw `${new Date} - Response Cursor is null.`
+  }
+  await lazyGogoroAuthRepository.updateCursor(result.cursor);
   if (result.scooters) {
     console.log(`${new Date()} - Creating ScooterIds...`)
     result.scooters.map(async (scooter)=>{
