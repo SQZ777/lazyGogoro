@@ -24,23 +24,21 @@ async function createPlate(scooterInfo, plateRepository) {
   const queryResult = await plateRepository.getScooterInfo(plate);
   if (queryResult === null) {
     await plateRepository.createPlate(scooterInfo);
-    console.log(`${new Date} - ${plate} is created.`);
+    console.log(`${new Date()} - ${plate} is created.`);
   } else {
-    console.log(`${new Date} - ${plate} is exist.`);
+    console.log(`${new Date()} - ${plate} is exist.`);
   }
 }
 
 let client;
-async function init(){
+async function init() {
   client = await connectToMongodb();
   await run();
 }
 
 async function run() {
   const lazyGogoroCollection = new MongoDbBase(client, 'lazyGogoro');
-  const lazyGogoroRepository = new LazyGogoroRepository(
-    lazyGogoroCollection,
-  );
+  const lazyGogoroRepository = new LazyGogoroRepository(lazyGogoroCollection);
   const refreshTokenService = new RefreshTokenServiceV2(lazyGogoroRepository);
   const gogoroPlatesCollection = new MongoDbBase(client, 'gogoroScooterInfo');
   const plateRepository = new PlateRepository(gogoroPlatesCollection);
@@ -51,20 +49,20 @@ async function run() {
   let cursor = await lazyGogoroRepository.getCursor();
   const result = await plateService.collectPlates(auth, cursor);
   if (result.cursor === null) {
-    throw `${new Date} - Response Cursor is null.`
+    throw `${new Date()} - Response Cursor is null.`;
   }
-  await lazyGogoroAuthRepository.updateCursor(result.cursor);
+  await lazyGogoroRepository.updateCursor(result.cursor);
   if (result.scooters) {
-    console.log(`${new Date()} - Creating ScooterIds...`)
-    result.scooters.map(async (scooter)=>{
+    console.log(`${new Date()} - Creating ScooterIds...`);
+    result.scooters.map(async (scooter) => {
       const info = {
         ScooterId: scooter.id,
         Plate: scooter.plate,
       };
       await createPlate(info, plateRepository);
     });
-    console.log(`${new Date()} - Create Complete!`)
-  }else{
+    console.log(`${new Date()} - Create Complete!`);
+  } else {
     console.log(`${new Date()} - Scooters is null or undefined.`);
   }
 }
@@ -72,4 +70,4 @@ async function run() {
 init();
 setInterval(async () => {
   run();
-}, 61000);
+}, 600000);
