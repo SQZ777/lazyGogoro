@@ -6,7 +6,6 @@
 ScooterId=
 UserId=
 Password=
-RefreshTokenAuthorization=
 RefreshTokenUUID=
 mongoHost=
 ```
