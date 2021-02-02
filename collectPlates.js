@@ -25,8 +25,6 @@ async function createPlate(scooterInfo, plateRepository) {
   if (queryResult === null) {
     await plateRepository.createPlate(scooterInfo);
     console.log(`${new Date()} - ${plate} is created.`);
-  } else {
-    console.log(`${new Date()} - ${plate} is exist.`);
   }
 }
 
